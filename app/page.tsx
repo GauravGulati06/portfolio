@@ -9,6 +9,7 @@ import {
   Phone,
 } from "lucide-react";
 import { EncryptedText } from "@/components/ui/encrypted-text";
+import { AgeCounter } from "@/components/age-counter";
 
 export default function Home() {
   return (
@@ -16,7 +17,7 @@ export default function Home() {
       <header className="space-y-6">
         <div className="space-y-2">
           <div className="space-y-3">
-            <h1 className="text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">
+            <h1 className="text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl font-surfer">
               <EncryptedText
                 text="Gaurav Gulati"
                 revealDelayMs={35}
@@ -32,7 +33,7 @@ export default function Home() {
                 src="/avatar.jpg"
                 alt="Gaurav Gulati"
                 fill
-                className="object-cover"
+                className="object-cover transition-transform duration-500 hover:scale-110"
                 priority
               />
             </div>
@@ -52,8 +53,8 @@ export default function Home() {
 
         <div className="max-w-2xl space-y-3 text-zinc-200">
           <p className="leading-relaxed">
-            I build Retrieval-Augmented Generation (RAG) systems, scalable APIs, and
-            production-ready ML/GenAI applications.
+            Hi, I am Gaurav Gulati. I am <AgeCounter /> years old. I build Retrieval-Augmented Generation (RAG)
+            systems, scalable APIs, and production-ready ML/GenAI applications.
           </p>
           <p className="leading-relaxed text-zinc-300">
             I work with FastAPI, LangChain/LlamaIndex, vector databases, and modern

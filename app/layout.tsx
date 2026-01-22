@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Original_Surfer, Quantico } from "next/font/google";
 import { ShootingStars } from "@/components/ui/shooting-stars";
 import { StarsBackground } from "@/components/ui/stars-background";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const originalSurfer = Original_Surfer({
+  weight: "400",
   subsets: ["latin"],
+  variable: "--font-original-surfer",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const quantico = Quantico({
+  weight: ["400", "700"],
   subsets: ["latin"],
+  variable: "--font-quantico",
 });
 
 export const metadata: Metadata = {
@@ -27,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased relative isolate min-h-screen bg-background text-foreground`}
+        className={`${originalSurfer.variable} ${quantico.variable} antialiased relative isolate min-h-screen bg-background text-foreground`}
       >
         <div className="fixed inset-0 z-0 pointer-events-none">
           <StarsBackground className="opacity-70" starDensity={0.00018} />

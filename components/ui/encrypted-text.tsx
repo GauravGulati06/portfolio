@@ -31,36 +31,30 @@ function generateGibberishPreservingSpaces(
     .join("");
 }
 
-export const EncryptedText: React.FC<EncryptedTextProps> = ({
+export const EncryptedText: React.FC<EncryptedTextProps & { initialScrambleMs?: number }> = ({
   text,
   className,
-  revealDelayMs = 50,
+  revealDelayMs = 60,
+  flipDelayMs = 40,
   charset = DEFAULT_CHARSET,
-  flipDelayMs = 50,
+  initialScrambleMs = 400,
   encryptedClassName,
   revealedClassName,
 }) => {
   const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true });
-
-  /** 🔑 Hydration fix */
   const [mounted, setMounted] = useState(false);
-
-  /** Animation state */
   const [revealCount, setRevealCount] = useState(0);
-  const animationFrameRef = useRef<number | null>(null);
+
+  const scrambleCharsRef = useRef<string[]>([]);
   const startTimeRef = useRef(0);
   const lastFlipTimeRef = useRef(0);
-  const scrambleCharsRef = useRef<string[]>(
-    generateGibberishPreservingSpaces(text, charset).split("")
-  );
+  const rafRef = useRef<number>();
 
-  /** Ensure server + first client render match */
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  /** Animation logic (client-only) */
   useEffect(() => {
     if (!mounted || !isInView) return;
 
@@ -69,81 +63,69 @@ export const EncryptedText: React.FC<EncryptedTextProps> = ({
       charset
     ).split("");
 
-    startTimeRef.current = performance.now();
-    lastFlipTimeRef.current = startTimeRef.current;
     setRevealCount(0);
 
-    let cancelled = false;
+    startTimeRef.current = performance.now();
+    lastFlipTimeRef.current = startTimeRef.current;
 
-    const update = (now: number) => {
-      if (cancelled) return;
-
+    const animate = (now: number) => {
       const elapsed = now - startTimeRef.current;
-      const totalLength = text.length;
-      const currentReveal = Math.min(
-        totalLength,
-        Math.floor(elapsed / Math.max(1, revealDelayMs))
-      );
 
-      setRevealCount(currentReveal);
-
-      if (currentReveal < totalLength) {
-        if (now - lastFlipTimeRef.current >= flipDelayMs) {
-          for (let i = currentReveal; i < totalLength; i++) {
-            scrambleCharsRef.current[i] =
-              text[i] === " " ? " " : generateRandomCharacter(charset);
-          }
+      // ⏸️ Initial full scramble phase
+      if (elapsed < initialScrambleMs) {
+        if (now - lastFlipTimeRef.current > flipDelayMs) {
+          scrambleCharsRef.current = scrambleCharsRef.current.map((c, i) =>
+            text[i] === " " ? " " : generateRandomCharacter(charset)
+          );
           lastFlipTimeRef.current = now;
         }
-        animationFrameRef.current = requestAnimationFrame(update);
+        rafRef.current = requestAnimationFrame(animate);
+        return;
+      }
+
+      // 🔓 Reveal phase
+      const revealElapsed = elapsed - initialScrambleMs;
+      const nextReveal = Math.min(
+        text.length,
+        Math.floor(revealElapsed / revealDelayMs)
+      );
+
+      setRevealCount(nextReveal);
+
+      if (now - lastFlipTimeRef.current > flipDelayMs) {
+        for (let i = nextReveal; i < text.length; i++) {
+          scrambleCharsRef.current[i] =
+            text[i] === " " ? " " : generateRandomCharacter(charset);
+        }
+        lastFlipTimeRef.current = now;
+      }
+
+      if (nextReveal < text.length) {
+        rafRef.current = requestAnimationFrame(animate);
       }
     };
 
-    animationFrameRef.current = requestAnimationFrame(update);
+    rafRef.current = requestAnimationFrame(animate);
 
     return () => {
-      cancelled = true;
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [mounted, isInView, text, revealDelayMs, flipDelayMs, charset]);
+  }, [mounted, isInView, text, charset, revealDelayMs, flipDelayMs, initialScrambleMs]);
 
-  /** 🔐 SSR-safe fallback */
   if (!mounted) {
-    return (
-      <span ref={ref} className={cn(className)} aria-label={text} role="text">
-        {text}
-      </span>
-    );
+    return <span ref={ref}>{text}</span>;
   }
 
   return (
-    <motion.span
-      ref={ref}
-      className={cn(className)}
-      aria-label={text}
-      role="text"
-    >
-      {text.split("").map((char, index) => {
-        const isRevealed = index < revealCount;
-        const displayChar = isRevealed
-          ? char
-          : char === " "
-          ? " "
-          : scrambleCharsRef.current[index];
-
-        return (
-          <span
-            key={index}
-            className={cn(
-              isRevealed ? revealedClassName : encryptedClassName
-            )}
-          >
-            {displayChar}
-          </span>
-        );
-      })}
-    </motion.span>
+    <span ref={ref} className={className}>
+      {text.split("").map((char, i) => (
+        <span
+          key={i}
+          className={i < revealCount ? revealedClassName : encryptedClassName}
+        >
+          {i < revealCount ? char : scrambleCharsRef.current[i]}
+        </span>
+      ))}
+    </span>
   );
 };
