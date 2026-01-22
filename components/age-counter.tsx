@@ -7,7 +7,7 @@ export function AgeCounter() {
 
     useEffect(() => {
         // Using June 19, 2004 as a base for being 21 in 2026
-        const birthDate = new Date("2004-06-19T00:00:00");
+        const birthDate = new Date("2005-01-06T00:00:00");
 
         const updateAge = () => {
             const now = new Date();
