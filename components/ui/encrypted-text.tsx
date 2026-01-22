@@ -49,7 +49,7 @@ export const EncryptedText: React.FC<EncryptedTextProps & { initialScrambleMs?: 
   const scrambleCharsRef = useRef<string[]>([]);
   const startTimeRef = useRef(0);
   const lastFlipTimeRef = useRef(0);
-  const rafRef = useRef<number>();
+  const rafRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     setMounted(true);
