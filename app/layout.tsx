@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Original_Surfer, Quantico } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { ShootingStars } from "@/components/ui/shooting-stars";
 import { StarsBackground } from "@/components/ui/stars-background";
 import "./globals.css";
@@ -38,6 +39,7 @@ export default function RootLayout({
         </div>
 
         <div className="relative z-10">{children}</div>
+        <Analytics />
       </body>
     </html>
   );
